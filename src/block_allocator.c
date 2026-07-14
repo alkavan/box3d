@@ -9,6 +9,10 @@ b3BlockAllocator b3CreateBlockAllocator( int elementSize, int initialCount )
 {
 	B3_ASSERT( elementSize >= (int)sizeof( void* ) );
 
+	// Ensure elementSize is a multiple of pointer size so every element
+	// pointer stays aligned for the free-list void* link.
+	elementSize = ( elementSize + (int)sizeof(void*) - 1 ) & ~( (int)sizeof(void*) - 1 );
+
 	b3BlockAllocator allocator = { 0 };
 
 	b3Array_Create( allocator.blocks );
@@ -81,6 +85,7 @@ void b3FreeElement( b3BlockAllocator* allocator, void* element )
 	B3_ASSERT( allocator != NULL );
 	B3_ASSERT( element != NULL );
 	B3_ASSERT( allocator->allocationCount > 0 );
+	B3_ASSERT( ((uintptr_t)element & (sizeof(void*) - 1)) == 0 );
 
 	allocator->allocationCount -= 1;
 
